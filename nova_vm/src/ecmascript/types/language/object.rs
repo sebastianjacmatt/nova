@@ -16,6 +16,8 @@ use std::collections::TryReserveError;
 
 #[cfg(feature = "date")]
 use super::value::DATE_DISCRIMINANT;
+#[cfg(feature = "temporal")]
+use super::value::INSTANT_DISCRIMINANT;
 #[cfg(feature = "proposal-float16array")]
 use super::value::FLOAT_16_ARRAY_DISCRIMINANT;
 #[cfg(feature = "shared-array-buffer")]
@@ -48,6 +50,8 @@ use super::{
 };
 #[cfg(feature = "date")]
 use crate::ecmascript::builtins::date::Date;
+#[cfg(feature = "temporal")]
+use crate::ecmascript::builtins::temporal::instant::Instant;
 #[cfg(feature = "shared-array-buffer")]
 use crate::ecmascript::builtins::shared_array_buffer::SharedArrayBuffer;
 #[cfg(feature = "weak-refs")]
@@ -157,6 +161,7 @@ pub enum Object<'a> {
     DataView(DataView<'a>) = DATA_VIEW_DISCRIMINANT,
     #[cfg(feature = "date")]
     Date(Date<'a>) = DATE_DISCRIMINANT,
+    Instant(Instant<'a>) = INSTANT_DISCRIMINANT,
     Error(Error<'a>) = ERROR_DISCRIMINANT,
     FinalizationRegistry(FinalizationRegistry<'a>) = FINALIZATION_REGISTRY_DISCRIMINANT,
     Map(Map<'a>) = MAP_DISCRIMINANT,
@@ -716,6 +721,7 @@ impl<'a> From<Object<'a>> for Value<'a> {
             Object::DataView(data) => Value::DataView(data.unbind()),
             #[cfg(feature = "date")]
             Object::Date(data) => Value::Date(data.unbind()),
+            Object::Instant(data) => Value::Instant(data.unbind()),
             Object::Error(data) => Value::Error(data.unbind()),
             Object::FinalizationRegistry(data) => Value::FinalizationRegistry(data.unbind()),
             Object::Map(data) => Value::Map(data.unbind()),
@@ -791,6 +797,8 @@ impl<'a> TryFrom<Value<'a>> for Object<'a> {
             Value::Array(x) => Ok(Object::from(x)),
             #[cfg(feature = "date")]
             Value::Date(x) => Ok(Object::Date(x)),
+            #[cfg(feature = "temporal")]
+            Value::Instant(x) => Ok(Object::Instant(x)),
             Value::Error(x) => Ok(Object::from(x)),
             Value::BoundFunction(x) => Ok(Object::from(x)),
             Value::BuiltinFunction(x) => Ok(Object::from(x)),
@@ -893,6 +901,8 @@ impl Hash for Object<'_> {
             Object::DataView(data) => data.get_index().hash(state),
             #[cfg(feature = "date")]
             Object::Date(data) => data.get_index().hash(state),
+            #[cfg(feature = "temporal")]
+            Object::Instant(data) => data.get_index().hash(state),
             Object::Error(data) => data.get_index().hash(state),
             Object::FinalizationRegistry(data) => data.get_index().hash(state),
             Object::Map(data) => data.get_index().hash(state),
@@ -958,6 +968,7 @@ impl<'a> InternalSlots<'a> for Object<'a> {
             Object::ArrayBuffer(data) => data.get_backing_object(agent),
             #[cfg(feature = "date")]
             Object::Date(data) => data.get_backing_object(agent),
+            Object::Instant(data) => data.get_backing_object(agent),
             Object::Error(data) => data.get_backing_object(agent),
             Object::BoundFunction(data) => data.get_backing_object(agent),
             Object::BuiltinFunction(data) => data.get_backing_object(agent),
@@ -1047,6 +1058,8 @@ impl<'a> InternalSlots<'a> for Object<'a> {
             Object::ArrayBuffer(data) => data.get_or_create_backing_object(agent),
             #[cfg(feature = "date")]
             Object::Date(data) => data.get_or_create_backing_object(agent),
+            #[cfg(feature = "temporal")]
+            Object::Instant(data) => data.get_or_create_backing_object(agent),
             Object::Error(data) => data.get_or_create_backing_object(agent),
             Object::BoundFunction(data) => data.get_or_create_backing_object(agent),
             Object::BuiltinFunction(data) => data.get_or_create_backing_object(agent),
@@ -1148,6 +1161,8 @@ impl<'a> InternalSlots<'a> for Object<'a> {
             Object::ArrayBuffer(data) => data.object_shape(agent),
             #[cfg(feature = "date")]
             Object::Date(data) => data.object_shape(agent),
+            #[cfg(feature = "temporal")]
+            Object::Instant(data) => data.object_shape(agent),
             Object::Error(data) => data.object_shape(agent),
             Object::BoundFunction(data) => data.object_shape(agent),
             Object::BuiltinFunction(data) => data.object_shape(agent),
@@ -1225,6 +1240,8 @@ impl<'a> InternalSlots<'a> for Object<'a> {
             Object::ArrayBuffer(data) => data.internal_extensible(agent),
             #[cfg(feature = "date")]
             Object::Date(data) => data.internal_extensible(agent),
+            #[cfg(feature = "temporal")]
+            Object::Instant(data) => data.internal_extensible(agent),
             Object::Error(data) => data.internal_extensible(agent),
             Object::BoundFunction(data) => data.internal_extensible(agent),
             Object::BuiltinFunction(data) => data.internal_extensible(agent),
@@ -1306,6 +1323,8 @@ impl<'a> InternalSlots<'a> for Object<'a> {
             Object::ArrayBuffer(data) => data.internal_set_extensible(agent, value),
             #[cfg(feature = "date")]
             Object::Date(data) => data.internal_set_extensible(agent, value),
+            #[cfg(feature = "temporal")]
+            Object::Instant(data) => data.internal_set_extensible(agent, value),
             Object::Error(data) => data.internal_set_extensible(agent, value),
             Object::BoundFunction(data) => data.internal_set_extensible(agent, value),
             Object::BuiltinFunction(idx) => idx.internal_set_extensible(agent, value),
@@ -1409,6 +1428,8 @@ impl<'a> InternalSlots<'a> for Object<'a> {
             Object::ArrayBuffer(data) => data.internal_prototype(agent),
             #[cfg(feature = "date")]
             Object::Date(data) => data.internal_prototype(agent),
+            #[cfg(feature = "temporal")]
+            Object::Instant(data) => data.internal_prototype(agent),
             Object::Error(data) => data.internal_prototype(agent),
             Object::BoundFunction(data) => data.internal_prototype(agent),
             Object::BuiltinFunction(data) => data.internal_prototype(agent),
@@ -1490,6 +1511,8 @@ impl<'a> InternalSlots<'a> for Object<'a> {
             Object::ArrayBuffer(data) => data.internal_set_prototype(agent, prototype),
             #[cfg(feature = "date")]
             Object::Date(data) => data.internal_set_prototype(agent, prototype),
+            #[cfg(feature = "temporal")]
+            Object::Instant(data) => data.internal_set_prototype(agent, prototype),
             Object::Error(data) => data.internal_set_prototype(agent, prototype),
             Object::BoundFunction(data) => data.internal_set_prototype(agent, prototype),
             Object::BuiltinFunction(data) => data.internal_set_prototype(agent, prototype),
@@ -1601,6 +1624,8 @@ impl<'a> InternalMethods<'a> for Object<'a> {
             Object::ArrayBuffer(data) => data.try_get_prototype_of(agent, gc),
             #[cfg(feature = "date")]
             Object::Date(data) => data.try_get_prototype_of(agent, gc),
+            #[cfg(feature = "temporal")]
+            Object::Instant(data) => data.try_get_prototype_of(agent, gc),
             Object::Error(data) => data.try_get_prototype_of(agent, gc),
             Object::BoundFunction(data) => data.try_get_prototype_of(agent, gc),
             Object::BuiltinFunction(data) => data.try_get_prototype_of(agent, gc),
@@ -1702,6 +1727,8 @@ impl<'a> InternalMethods<'a> for Object<'a> {
             Object::ArrayBuffer(data) => data.internal_get_prototype_of(agent, gc),
             #[cfg(feature = "date")]
             Object::Date(data) => data.internal_get_prototype_of(agent, gc),
+            #[cfg(feature = "temporal")]
+            Object::Instant(data) => data.internal_get_prototype_of(agent, gc),
             Object::Error(data) => data.internal_get_prototype_of(agent, gc),
             Object::BoundFunction(data) => data.internal_get_prototype_of(agent, gc),
             Object::BuiltinFunction(data) => data.internal_get_prototype_of(agent, gc),
@@ -1810,6 +1837,8 @@ impl<'a> InternalMethods<'a> for Object<'a> {
             Object::ArrayBuffer(data) => data.try_set_prototype_of(agent, prototype, gc),
             #[cfg(feature = "date")]
             Object::Date(data) => data.try_set_prototype_of(agent, prototype, gc),
+            #[cfg(feature = "temporal")]
+            Object::Instant(data) => data.try_set_prototype_of(agent, prototype, gc),
             Object::Error(data) => data.try_set_prototype_of(agent, prototype, gc),
             Object::BoundFunction(data) => data.try_set_prototype_of(agent, prototype, gc),
             Object::BuiltinFunction(data) => data.try_set_prototype_of(agent, prototype, gc),
@@ -1920,6 +1949,8 @@ impl<'a> InternalMethods<'a> for Object<'a> {
             Object::ArrayBuffer(data) => data.internal_set_prototype_of(agent, prototype, gc),
             #[cfg(feature = "date")]
             Object::Date(data) => data.internal_set_prototype_of(agent, prototype, gc),
+            #[cfg(feature = "temporal")]
+            Object::Instant(data) => data.internal_set_prototype_of(agent, prototype, gc),
             Object::Error(data) => data.internal_set_prototype_of(agent, prototype, gc),
             Object::BoundFunction(data) => data.internal_set_prototype_of(agent, prototype, gc),
             Object::BuiltinFunction(data) => data.internal_set_prototype_of(agent, prototype, gc),
@@ -2035,6 +2066,8 @@ impl<'a> InternalMethods<'a> for Object<'a> {
             Object::ArrayBuffer(data) => data.try_is_extensible(agent, gc),
             #[cfg(feature = "date")]
             Object::Date(data) => data.try_is_extensible(agent, gc),
+            #[cfg(feature = "temporal")]
+            Object::Instant(data) => data.try_is_extensible(agent, gc),
             Object::Error(data) => data.try_is_extensible(agent, gc),
             Object::BoundFunction(data) => data.try_is_extensible(agent, gc),
             Object::BuiltinFunction(data) => data.try_is_extensible(agent, gc),
@@ -2126,6 +2159,8 @@ impl<'a> InternalMethods<'a> for Object<'a> {
             Object::ArrayBuffer(data) => data.internal_is_extensible(agent, gc),
             #[cfg(feature = "date")]
             Object::Date(data) => data.internal_is_extensible(agent, gc),
+            #[cfg(feature = "temporal")]
+            Object::Instant(data) => data.internal_is_extensible(agent, gc),
             Object::Error(data) => data.internal_is_extensible(agent, gc),
             Object::BoundFunction(data) => data.internal_is_extensible(agent, gc),
             Object::BuiltinFunction(data) => data.internal_is_extensible(agent, gc),
@@ -2229,6 +2264,8 @@ impl<'a> InternalMethods<'a> for Object<'a> {
             Object::ArrayBuffer(data) => data.try_prevent_extensions(agent, gc),
             #[cfg(feature = "date")]
             Object::Date(data) => data.try_prevent_extensions(agent, gc),
+            #[cfg(feature = "temporal")]
+            Object::Instant(data) => data.try_prevent_extensions(agent, gc),
             Object::Error(data) => data.try_prevent_extensions(agent, gc),
             Object::BoundFunction(data) => data.try_prevent_extensions(agent, gc),
             Object::BuiltinFunction(data) => data.try_prevent_extensions(agent, gc),
@@ -2332,6 +2369,8 @@ impl<'a> InternalMethods<'a> for Object<'a> {
             Object::ArrayBuffer(data) => data.internal_prevent_extensions(agent, gc),
             #[cfg(feature = "date")]
             Object::Date(data) => data.internal_prevent_extensions(agent, gc),
+            #[cfg(feature = "temporal")]
+            Object::Instant(data) => data.internal_prevent_extensions(agent, gc),
             Object::Error(data) => data.internal_prevent_extensions(agent, gc),
             Object::BoundFunction(data) => data.internal_prevent_extensions(agent, gc),
             Object::BuiltinFunction(data) => data.internal_prevent_extensions(agent, gc),
@@ -2441,6 +2480,8 @@ impl<'a> InternalMethods<'a> for Object<'a> {
             Object::ArrayBuffer(data) => data.try_get_own_property(agent, property_key, cache, gc),
             #[cfg(feature = "date")]
             Object::Date(data) => data.try_get_own_property(agent, property_key, cache, gc),
+            #[cfg(feature = "temporal")]
+            Object::Instant(data) => data.try_get_own_property(agent, property_key, cache, gc),
             Object::Error(data) => data.try_get_own_property(agent, property_key, cache, gc),
             Object::BoundFunction(data) => {
                 data.try_get_own_property(agent, property_key, cache, gc)
@@ -2575,6 +2616,8 @@ impl<'a> InternalMethods<'a> for Object<'a> {
             Object::ArrayBuffer(data) => data.internal_get_own_property(agent, property_key, gc),
             #[cfg(feature = "date")]
             Object::Date(data) => data.internal_get_own_property(agent, property_key, gc),
+            #[cfg(feature = "temporal")]
+            Object::Instant(data) => data.internal_get_own_property(agent, property_key, gc),
             Object::Error(data) => data.internal_get_own_property(agent, property_key, gc),
             Object::BoundFunction(data) => data.internal_get_own_property(agent, property_key, gc),
             Object::BuiltinFunction(data) => {
@@ -2704,6 +2747,10 @@ impl<'a> InternalMethods<'a> for Object<'a> {
             }
             #[cfg(feature = "date")]
             Object::Date(idx) => {
+                idx.try_define_own_property(agent, property_key, property_descriptor, cache, gc)
+            }
+            #[cfg(feature = "temporal")]
+            Object::Instant(idx) => {
                 idx.try_define_own_property(agent, property_key, property_descriptor, cache, gc)
             }
             Object::Error(idx) => {
@@ -2915,6 +2962,10 @@ impl<'a> InternalMethods<'a> for Object<'a> {
             Object::Date(idx) => {
                 idx.internal_define_own_property(agent, property_key, property_descriptor, gc)
             }
+            #[cfg(feature = "temporal")]
+            Object::Instant(idx) => {
+                idx.internal_define_own_property(agent, property_key, property_descriptor, gc)
+            }
             Object::Error(idx) => {
                 idx.internal_define_own_property(agent, property_key, property_descriptor, gc)
             }
@@ -3082,6 +3133,8 @@ impl<'a> InternalMethods<'a> for Object<'a> {
             Object::ArrayBuffer(data) => data.try_has_property(agent, property_key, cache, gc),
             #[cfg(feature = "date")]
             Object::Date(data) => data.try_has_property(agent, property_key, cache, gc),
+            #[cfg(feature = "temporal")]
+            Object::Instant(data) => data.try_has_property(agent, property_key, cache, gc),
             Object::Error(data) => data.try_has_property(agent, property_key, cache, gc),
             Object::BoundFunction(data) => data.try_has_property(agent, property_key, cache, gc),
             Object::BuiltinFunction(data) => data.try_has_property(agent, property_key, cache, gc),
@@ -3200,6 +3253,8 @@ impl<'a> InternalMethods<'a> for Object<'a> {
             Object::ArrayBuffer(data) => data.internal_has_property(agent, property_key, gc),
             #[cfg(feature = "date")]
             Object::Date(data) => data.internal_has_property(agent, property_key, gc),
+            #[cfg(feature = "temporal")]
+            Object::Instant(data) => data.internal_has_property(agent, property_key, gc),
             Object::Error(data) => data.internal_has_property(agent, property_key, gc),
             Object::BoundFunction(data) => data.internal_has_property(agent, property_key, gc),
             Object::BuiltinFunction(data) => data.internal_has_property(agent, property_key, gc),
@@ -3316,6 +3371,8 @@ impl<'a> InternalMethods<'a> for Object<'a> {
             Object::ArrayBuffer(data) => data.try_get(agent, property_key, receiver, cache, gc),
             #[cfg(feature = "date")]
             Object::Date(data) => data.try_get(agent, property_key, receiver, cache, gc),
+            #[cfg(feature = "temporal")]
+            Object::Instant(data) => data.try_get(agent, property_key, receiver, cache, gc),
             Object::Error(data) => data.try_get(agent, property_key, receiver, cache, gc),
             Object::BoundFunction(data) => data.try_get(agent, property_key, receiver, cache, gc),
             Object::BuiltinFunction(data) => data.try_get(agent, property_key, receiver, cache, gc),
@@ -3439,6 +3496,8 @@ impl<'a> InternalMethods<'a> for Object<'a> {
             Object::ArrayBuffer(data) => data.internal_get(agent, property_key, receiver, gc),
             #[cfg(feature = "date")]
             Object::Date(data) => data.internal_get(agent, property_key, receiver, gc),
+            #[cfg(feature = "temporal")]
+            Object::Instant(data) => data.internal_get(agent, property_key, receiver, gc),
             Object::Error(data) => data.internal_get(agent, property_key, receiver, gc),
             Object::BoundFunction(data) => data.internal_get(agent, property_key, receiver, gc),
             Object::BuiltinFunction(data) => data.internal_get(agent, property_key, receiver, gc),
@@ -3560,6 +3619,8 @@ impl<'a> InternalMethods<'a> for Object<'a> {
             }
             #[cfg(feature = "date")]
             Object::Date(data) => data.try_set(agent, property_key, value, receiver, cache, gc),
+            #[cfg(feature = "temporal")]
+            Object::Instant(data) => data.try_set(agent, property_key, value, receiver, cache, gc),
             Object::Error(data) => data.try_set(agent, property_key, value, receiver, cache, gc),
             Object::BoundFunction(data) => {
                 data.try_set(agent, property_key, value, receiver, cache, gc)
@@ -3759,6 +3820,8 @@ impl<'a> InternalMethods<'a> for Object<'a> {
             }
             #[cfg(feature = "date")]
             Object::Date(data) => data.internal_set(agent, property_key, value, receiver, gc),
+            #[cfg(feature = "temporal")]
+            Object::Instant(data) => data.internal_set(agent, property_key, value, receiver, gc),
             Object::Error(data) => data.internal_set(agent, property_key, value, receiver, gc),
             Object::BoundFunction(data) => {
                 data.internal_set(agent, property_key, value, receiver, gc)
@@ -3919,6 +3982,8 @@ impl<'a> InternalMethods<'a> for Object<'a> {
             Object::ArrayBuffer(data) => data.try_delete(agent, property_key, gc),
             #[cfg(feature = "date")]
             Object::Date(data) => data.try_delete(agent, property_key, gc),
+            #[cfg(feature = "temporal")]
+            Object::Instant(data) => data.try_delete(agent, property_key, gc),
             Object::Error(data) => data.try_delete(agent, property_key, gc),
             Object::BoundFunction(data) => data.try_delete(agent, property_key, gc),
             Object::BuiltinFunction(data) => data.try_delete(agent, property_key, gc),
@@ -4025,6 +4090,8 @@ impl<'a> InternalMethods<'a> for Object<'a> {
             Object::ArrayBuffer(data) => data.internal_delete(agent, property_key, gc),
             #[cfg(feature = "date")]
             Object::Date(data) => data.internal_delete(agent, property_key, gc),
+            #[cfg(feature = "temporal")]
+            Object::Instant(data) => data.internal_delete(agent, property_key, gc),
             Object::Error(data) => data.internal_delete(agent, property_key, gc),
             Object::BoundFunction(data) => data.internal_delete(agent, property_key, gc),
             Object::BuiltinFunction(data) => data.internal_delete(agent, property_key, gc),
@@ -4134,6 +4201,8 @@ impl<'a> InternalMethods<'a> for Object<'a> {
             Object::ArrayBuffer(data) => data.try_own_property_keys(agent, gc),
             #[cfg(feature = "date")]
             Object::Date(data) => data.try_own_property_keys(agent, gc),
+            #[cfg(feature = "temporal")]
+            Object::Instant(data) => data.try_own_property_keys(agent, gc),
             Object::Error(data) => data.try_own_property_keys(agent, gc),
             Object::BoundFunction(data) => data.try_own_property_keys(agent, gc),
             Object::BuiltinFunction(data) => data.try_own_property_keys(agent, gc),
@@ -4235,6 +4304,8 @@ impl<'a> InternalMethods<'a> for Object<'a> {
             Object::ArrayBuffer(data) => data.internal_own_property_keys(agent, gc),
             #[cfg(feature = "date")]
             Object::Date(data) => data.internal_own_property_keys(agent, gc),
+            #[cfg(feature = "temporal")]
+            Object::Instant(data) => data.internal_own_property_keys(agent, gc),
             Object::Error(data) => data.internal_own_property_keys(agent, gc),
             Object::BoundFunction(data) => data.internal_own_property_keys(agent, gc),
             Object::BuiltinFunction(data) => data.internal_own_property_keys(agent, gc),
@@ -4343,6 +4414,8 @@ impl<'a> InternalMethods<'a> for Object<'a> {
             Object::ArrayBuffer(data) => data.get_own_property_at_offset(agent, offset, gc),
             #[cfg(feature = "date")]
             Object::Date(data) => data.get_own_property_at_offset(agent, offset, gc),
+            #[cfg(feature = "temporal")]
+            Object::Instant(data) => data.get_own_property_at_offset(agent, offset, gc),
             Object::Error(data) => data.get_own_property_at_offset(agent, offset, gc),
             Object::BoundFunction(data) => data.get_own_property_at_offset(agent, offset, gc),
             Object::BuiltinFunction(data) => data.get_own_property_at_offset(agent, offset, gc),
@@ -4458,6 +4531,8 @@ impl<'a> InternalMethods<'a> for Object<'a> {
             Object::ArrayBuffer(data) => data.set_at_offset(agent, props, offset, gc),
             #[cfg(feature = "date")]
             Object::Date(data) => data.set_at_offset(agent, props, offset, gc),
+            #[cfg(feature = "temporal")]
+            Object::Instant(data) => data.set_at_offset(agent, props, offset, gc),
             Object::Error(data) => data.set_at_offset(agent, props, offset, gc),
             Object::BoundFunction(data) => data.set_at_offset(agent, props, offset, gc),
             Object::BuiltinFunction(data) => data.set_at_offset(agent, props, offset, gc),
@@ -4604,6 +4679,8 @@ impl HeapMarkAndSweep for Object<'static> {
             Self::ArrayBuffer(data) => data.mark_values(queues),
             #[cfg(feature = "date")]
             Self::Date(data) => data.mark_values(queues),
+            #[cfg(feature = "temporal")]
+            Self::Instant(data) => data.mark_values(queues),
             Self::Error(data) => data.mark_values(queues),
             Self::BoundFunction(data) => data.mark_values(queues),
             Self::BuiltinFunction(data) => data.mark_values(queues),
@@ -4691,6 +4768,8 @@ impl HeapMarkAndSweep for Object<'static> {
             Self::DataView(data) => data.sweep_values(compactions),
             #[cfg(feature = "date")]
             Self::Date(data) => data.sweep_values(compactions),
+            #[cfg(feature = "temporal")]
+            Self::Instant(data) => data.sweep_values(compactions),
             Self::Error(data) => data.sweep_values(compactions),
             Self::FinalizationRegistry(data) => data.sweep_values(compactions),
             Self::Map(data) => data.sweep_values(compactions),
@@ -4784,6 +4863,8 @@ impl HeapSweepWeakReference for Object<'static> {
             Self::DataView(data) => data.sweep_weak_reference(compactions).map(Self::DataView),
             #[cfg(feature = "date")]
             Self::Date(data) => data.sweep_weak_reference(compactions).map(Self::Date),
+            #[cfg(feature = "temporal")]
+            Self::Instant(data) => data.sweep_weak_reference(compactions).map(Self::Instant),
             Self::Error(data) => data.sweep_weak_reference(compactions).map(Self::Error),
             Self::FinalizationRegistry(data) => data
                 .sweep_weak_reference(compactions)
@@ -4954,6 +5035,8 @@ impl TryFrom<HeapRootData> for Object<'_> {
             HeapRootData::DataView(data_view) => Ok(Self::DataView(data_view)),
             #[cfg(feature = "date")]
             HeapRootData::Date(date) => Ok(Self::Date(date)),
+            #[cfg(feature = "temporal")]
+            HeapRootData::Instant(instant) => Ok(Self::Instant(instant)),
             HeapRootData::Error(error) => Ok(Self::Error(error)),
             HeapRootData::FinalizationRegistry(finalization_registry) => {
                 Ok(Self::FinalizationRegistry(finalization_registry))

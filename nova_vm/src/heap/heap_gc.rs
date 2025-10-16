@@ -22,6 +22,8 @@ use super::{
 use super::{heap_bits::sweep_side_table_values, indexes::TypedArrayIndex};
 #[cfg(feature = "date")]
 use crate::ecmascript::builtins::date::Date;
+#[cfg(feature = "temporal")]
+use crate::ecmascript::builtins::temporal::instant::Instant;
 #[cfg(feature = "shared-array-buffer")]
 use crate::ecmascript::builtins::shared_array_buffer::SharedArrayBuffer;
 #[cfg(feature = "array-buffer")]
@@ -128,6 +130,8 @@ pub fn heap_gc(agent: &mut Agent, root_realms: &mut [Option<Realm<'static>>], gc
                 data_view_byte_offsets: _,
             #[cfg(feature = "date")]
             dates,
+            #[cfg(feature = "temporal")]
+            instants,
             ecmascript_functions,
             elements,
             embedder_objects,
@@ -556,6 +560,22 @@ pub fn heap_gc(agent: &mut Agent, root_realms: &mut [Option<Realm<'static>>], gc
                     }
                     *marked = true;
                     dates.get(index).mark_values(&mut queues);
+                }
+            });
+        }
+        #[cfg(feature = "date")]
+        {
+            let mut instant_marks: Box<[Instant]> = queues.instants.drain(..).collect();
+            instant_marks.sort();
+            instant_marks.iter().for_each(|&idx| {
+                let index = idx.get_index();
+                if let Some(marked) = bits.instants.get_mut(index) {
+                    if *marked {
+                        // Already marked, ignore
+                        return;
+                    }
+                    *marked = true;
+                    instants.get(index).mark_values(&mut queues);
                 }
             });
         }
@@ -1415,6 +1435,8 @@ fn sweep(
         data_view_byte_offsets,
         #[cfg(feature = "date")]
         dates,
+        #[cfg(feature = "temporal")]
+        instants,
         ecmascript_functions,
         elements,
         embedder_objects,
@@ -1785,6 +1807,12 @@ fn sweep(
         if !dates.is_empty() {
             s.spawn(|| {
                 sweep_heap_vector_values(dates, &compactions, &bits.dates);
+            });
+        }
+        #[cfg(feature = "temporal")]
+        if !instants.is_empty() {
+            s.spawn(|| {
+                sweep_heap_vector_values(instants, &compactions, &bits.instants);
             });
         }
         if !declarative.is_empty() {

@@ -9,6 +9,8 @@ pub(crate) use private::{HeapRootCollectionData, RootableCollectionSealed, Roota
 
 #[cfg(feature = "date")]
 use crate::ecmascript::builtins::date::Date;
+#[cfg(feature = "temporal")]
+use crate::ecmascript::builtins::temporal::instant::Instant;
 #[cfg(feature = "shared-array-buffer")]
 use crate::ecmascript::builtins::shared_array_buffer::SharedArrayBuffer;
 #[cfg(feature = "array-buffer")]
@@ -17,6 +19,8 @@ use crate::ecmascript::builtins::{ArrayBuffer, data_view::DataView};
 use crate::ecmascript::builtins::{weak_map::WeakMap, weak_ref::WeakRef, weak_set::WeakSet};
 #[cfg(feature = "date")]
 use crate::ecmascript::types::DATE_DISCRIMINANT;
+#[cfg(feature = "temporal")]
+use crate::ecmascript::types::INSTANT_DISCRIMINANT;
 #[cfg(feature = "proposal-float16array")]
 use crate::ecmascript::types::FLOAT_16_ARRAY_DISCRIMINANT;
 #[cfg(feature = "shared-array-buffer")]
@@ -108,6 +112,8 @@ pub mod private {
 
     #[cfg(feature = "date")]
     use crate::ecmascript::builtins::date::Date;
+    #[cfg(feature = "temporal")]
+    use crate::ecmascript::builtins::temporal::instant::Instant;
     #[cfg(feature = "shared-array-buffer")]
     use crate::ecmascript::builtins::shared_array_buffer::SharedArrayBuffer;
     #[cfg(feature = "array-buffer")]
@@ -194,6 +200,8 @@ pub mod private {
     impl RootableSealed for DataView<'_> {}
     #[cfg(feature = "date")]
     impl RootableSealed for Date<'_> {}
+    #[cfg(feature = "temporal")]
+    impl RootableSealed for Instant<'_> {}
     impl RootableSealed for ECMAScriptFunction<'_> {}
     impl RootableSealed for EmbedderObject<'_> {}
     impl RootableSealed for Error<'_> {}
@@ -491,6 +499,8 @@ pub enum HeapRootData {
     DataView(DataView<'static>) = DATA_VIEW_DISCRIMINANT,
     #[cfg(feature = "date")]
     Date(Date<'static>) = DATE_DISCRIMINANT,
+    #[cfg(feature = "temporal")]
+    Instant(Instant<'static>) = INSTANT_DISCRIMINANT,
     Error(Error<'static>) = ERROR_DISCRIMINANT,
     FinalizationRegistry(FinalizationRegistry<'static>) = FINALIZATION_REGISTRY_DISCRIMINANT,
     Map(Map<'static>) = MAP_DISCRIMINANT,
@@ -594,6 +604,8 @@ impl From<Object<'static>> for HeapRootData {
             Object::DataView(data_view) => Self::DataView(data_view),
             #[cfg(feature = "date")]
             Object::Date(date) => Self::Date(date),
+            #[cfg(feature = "temporal")]
+            Object::Instant(instant) => Self::Instant(instant),
             Object::Error(error) => Self::Error(error),
             Object::FinalizationRegistry(finalization_registry) => {
                 Self::FinalizationRegistry(finalization_registry)
@@ -727,6 +739,8 @@ impl HeapMarkAndSweep for HeapRootData {
             HeapRootData::DataView(data_view) => data_view.mark_values(queues),
             #[cfg(feature = "date")]
             HeapRootData::Date(date) => date.mark_values(queues),
+            #[cfg(feature = "temporal")]
+            HeapRootData::Instant(instant) => instant.mark_values(queues),
             HeapRootData::Error(error) => error.mark_values(queues),
             HeapRootData::FinalizationRegistry(finalization_registry) => {
                 finalization_registry.mark_values(queues)
@@ -853,6 +867,8 @@ impl HeapMarkAndSweep for HeapRootData {
             HeapRootData::DataView(data_view) => data_view.sweep_values(compactions),
             #[cfg(feature = "date")]
             HeapRootData::Date(date) => date.sweep_values(compactions),
+            #[cfg(feature = "temporal")]
+            HeapRootData::Instant(date) => date.sweep_values(compactions),
             HeapRootData::Error(error) => error.sweep_values(compactions),
             HeapRootData::FinalizationRegistry(finalization_registry) => {
                 finalization_registry.sweep_values(compactions)
