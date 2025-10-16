@@ -6,12 +6,16 @@
 
 #[cfg(feature = "date")]
 use crate::ecmascript::builtins::date::Date;
+#[cfg(feature = "temporal")]
+use crate::ecmascript::{builtins::temporal::instant::Instant};
 #[cfg(feature = "shared-array-buffer")]
 use crate::ecmascript::builtins::shared_array_buffer::SharedArrayBuffer;
 #[cfg(feature = "weak-refs")]
 use crate::ecmascript::builtins::{weak_map::WeakMap, weak_ref::WeakRef, weak_set::WeakSet};
 #[cfg(feature = "date")]
 use crate::ecmascript::types::DATE_DISCRIMINANT;
+#[cfg(feature = "temporal")]
+use crate::ecmascript::types::INSTANT_DISCRIMINANT;
 #[cfg(feature = "proposal-float16array")]
 use crate::ecmascript::types::FLOAT_16_ARRAY_DISCRIMINANT;
 #[cfg(feature = "shared-array-buffer")]
@@ -119,6 +123,8 @@ pub(crate) enum WeakKey<'a> {
     DataView(DataView<'a>) = DATA_VIEW_DISCRIMINANT,
     #[cfg(feature = "date")]
     Date(Date<'a>) = DATE_DISCRIMINANT,
+    #[cfg(feature = "temporal")]
+    Instant(Instant<'a>) = INSTANT_DISCRIMINANT,
     Error(Error<'a>) = ERROR_DISCRIMINANT,
     FinalizationRegistry(FinalizationRegistry<'a>) = FINALIZATION_REGISTRY_DISCRIMINANT,
     Map(Map<'a>) = MAP_DISCRIMINANT,
@@ -202,6 +208,8 @@ impl<'a> From<WeakKey<'a>> for Value<'a> {
             WeakKey::DataView(d) => Self::DataView(d),
             #[cfg(feature = "date")]
             WeakKey::Date(d) => Self::Date(d),
+            #[cfg(feature = "temporal")]
+            WeakKey::Instant(d) => Self::Instant(d),
             WeakKey::Error(d) => Self::Error(d),
             WeakKey::FinalizationRegistry(d) => Self::FinalizationRegistry(d),
             WeakKey::Map(d) => Self::Map(d),
@@ -280,6 +288,8 @@ impl<'a> From<Object<'a>> for WeakKey<'a> {
             Object::DataView(d) => Self::DataView(d),
             #[cfg(feature = "date")]
             Object::Date(d) => Self::Date(d),
+            #[cfg(feature = "temporal")]
+            Object::Instant(d) => Self::Instant(d),
             Object::Error(d) => Self::Error(d),
             Object::FinalizationRegistry(d) => Self::FinalizationRegistry(d),
             Object::Map(d) => Self::Map(d),
@@ -362,6 +372,8 @@ impl<'a> TryFrom<WeakKey<'a>> for Object<'a> {
             WeakKey::DataView(d) => Ok(Self::DataView(d)),
             #[cfg(feature = "date")]
             WeakKey::Date(d) => Ok(Self::Date(d)),
+            #[cfg(feature = "temporal")]
+            WeakKey::Instant(d) => Ok(Self::Instant(d)),
             WeakKey::Error(d) => Ok(Self::Error(d)),
             WeakKey::FinalizationRegistry(d) => Ok(Self::FinalizationRegistry(d)),
             WeakKey::Map(d) => Ok(Self::Map(d)),
@@ -475,6 +487,8 @@ impl HeapMarkAndSweep for WeakKey<'static> {
             Self::DataView(d) => d.mark_values(queues),
             #[cfg(feature = "date")]
             Self::Date(d) => d.mark_values(queues),
+            #[cfg(feature = "temporal")]
+            Self::Instant(d) => d.mark_values(queues),
             Self::Error(d) => d.mark_values(queues),
             Self::FinalizationRegistry(d) => d.mark_values(queues),
             Self::Map(d) => d.mark_values(queues),
@@ -551,6 +565,8 @@ impl HeapMarkAndSweep for WeakKey<'static> {
             Self::DataView(d) => d.sweep_values(compactions),
             #[cfg(feature = "date")]
             Self::Date(d) => d.sweep_values(compactions),
+            #[cfg(feature = "temporal")]
+            Self::Instant(d) => d.sweep_values(compactions),
             Self::Error(d) => d.sweep_values(compactions),
             Self::FinalizationRegistry(d) => d.sweep_values(compactions),
             Self::Map(d) => d.sweep_values(compactions),
@@ -645,6 +661,8 @@ impl HeapSweepWeakReference for WeakKey<'static> {
             Self::DataView(data) => data.sweep_weak_reference(compactions).map(Self::DataView),
             #[cfg(feature = "date")]
             Self::Date(data) => data.sweep_weak_reference(compactions).map(Self::Date),
+            #[cfg(feature = "temporal")]
+            Self::Instant(data) => data.sweep_weak_reference(compactions).map(Self::Instant),
             Self::Error(data) => data.sweep_weak_reference(compactions).map(Self::Error),
             Self::FinalizationRegistry(data) => data
                 .sweep_weak_reference(compactions)
