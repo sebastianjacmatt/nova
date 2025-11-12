@@ -89,49 +89,6 @@ impl IndexMut<TemporalDuration<'_>> for Vec<DurationHeapData<'static>> {
             .expect("heap access out of bounds")
     }
 }
-/// 7.5.19 CreateTemporalDuration ( years, months, weeks,
-/// days, hours, minutes, seconds,
-/// milliseconds, microseconds, nanoseconds [ , newTarget ] )
-/// The abstract operation CreateTemporalDuration takes arguments
-/// years (an integer), months (an integer),
-/// weeks (an integer), days (an integer),
-/// hours (an integer), minutes (an integer),
-/// seconds (an integer), milliseconds (an integer),
-/// microseconds (an integer), and nanoseconds (an integer)
-/// and optional argument newTarget (a constructor)
-/// and returns either a normal completion containing
-/// a Temporal.Duration or a throw completion.
-/// It creates a Temporal.Duration instance and fills
-/// the internal slots with valid values.
-/// It performs the following steps when called:
-fn create_temporal_duration<'gc>(// years,
-    // months,
-    // weeks,
-    // days,
-    // hours,
-    // minutes,
-    // seconds,
-    // milliseconds,
-    // microseconds,
-    // nanoseconds: ,
-    // new_target: Option<Function>,
-) -> JsResult<'gc, TemporalDuration<'gc>> {
-    // 1. If IsValidDuration(years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds) is false, throw a RangeError exception.
-    // 2. If newTarget is not present, set newTarget to %Temporal.Duration%.
-    // 3. Let object be ? OrdinaryCreateFromConstructor(newTarget, "%Temporal.Duration.prototype%", « [[InitializedTemporalDuration]], [[Years]], [[Months]], [[Weeks]], [[Days]], [[Hours]], [[Minutes]], [[Seconds]], [[Milliseconds]], [[Microseconds]], [[Nanoseconds]] »).
-    // 4. Set object.[[Years]] to ℝ(𝔽(years)).
-    // 5. Set object.[[Months]] to ℝ(𝔽(months)).
-    // 6. Set object.[[Weeks]] to ℝ(𝔽(weeks)).
-    // 7. Set object.[[Days]] to ℝ(𝔽(days)).
-    // 8. Set object.[[Hours]] to ℝ(𝔽(hours)).
-    // 9. Set object.[[Minutes]] to ℝ(𝔽(minutes)).
-    // 10. Set object.[[Seconds]] to ℝ(𝔽(seconds)).
-    // 11. Set object.[[Milliseconds]] to ℝ(𝔽(milliseconds)).
-    // 12. Set object.[[Microseconds]] to ℝ(𝔽(microseconds)).
-    // 13. Set object.[[Nanoseconds]] to ℝ(𝔽(nanoseconds)).
-    // 14. Return object.
-    unimplemented!()
-}
 
 /// Abstract Operations <--->
 
@@ -380,6 +337,48 @@ pub(crate) fn to_temporal_partial_duration_record<'gc>(
     }
     // 25. Return result.
     Ok(result)
+}
+
+/// [7.5.19 CreateTemporalDuration ( years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds [ , newTarget ] )](https://tc39.es/proposal-temporal/#sec-temporal-createtemporalduration)
+/// The abstract operation CreateTemporalDuration takes arguments
+/// years (an integer), months (an integer),
+/// weeks (an integer), days (an integer),
+/// hours (an integer), minutes (an integer),
+/// seconds (an integer), milliseconds (an integer),
+/// microseconds (an integer), and nanoseconds (an integer)
+/// and optional argument newTarget (a constructor)
+/// and returns either a normal completion containing
+/// a Temporal.Duration or a throw completion.
+/// It creates a Temporal.Duration instance and fills
+/// the internal slots with valid values.
+pub (crate) fn create_temporal_duration<'gc>(
+    // years,
+    // months,
+    // weeks,
+    // days,
+    // hours,
+    // minutes,
+    // seconds,
+    // milliseconds,
+    // microseconds,
+    // nanoseconds: ,
+    // new_target: Option<Function>,
+) -> JsResult<'gc, TemporalDuration<'gc>> {
+    // 1. If IsValidDuration(years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds) is false, throw a RangeError exception.
+    // 2. If newTarget is not present, set newTarget to %Temporal.Duration%.
+    // 3. Let object be ? OrdinaryCreateFromConstructor(newTarget, "%Temporal.Duration.prototype%", « [[InitializedTemporalDuration]], [[Years]], [[Months]], [[Weeks]], [[Days]], [[Hours]], [[Minutes]], [[Seconds]], [[Milliseconds]], [[Microseconds]], [[Nanoseconds]] »).
+    // 4. Set object.[[Years]] to ℝ(𝔽(years)).
+    // 5. Set object.[[Months]] to ℝ(𝔽(months)).
+    // 6. Set object.[[Weeks]] to ℝ(𝔽(weeks)).
+    // 7. Set object.[[Days]] to ℝ(𝔽(days)).
+    // 8. Set object.[[Hours]] to ℝ(𝔽(hours)).
+    // 9. Set object.[[Minutes]] to ℝ(𝔽(minutes)).
+    // 10. Set object.[[Seconds]] to ℝ(𝔽(seconds)).
+    // 11. Set object.[[Milliseconds]] to ℝ(𝔽(milliseconds)).
+    // 12. Set object.[[Microseconds]] to ℝ(𝔽(microseconds)).
+    // 13. Set object.[[Nanoseconds]] to ℝ(𝔽(nanoseconds)).
+    // 14. Return object.
+    unimplemented!()
 }
 
 /// [7.5.20 CreateNegatedTemporalDuration ( duration )] (https://tc39.es/proposal-temporal/#sec-temporal-createnegatedtemporalduration)

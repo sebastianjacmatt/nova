@@ -226,7 +226,7 @@ impl TemporalInstantPrototype {
         const UNTIL: bool = true;
         let result = difference_temporal_instant::<UNTIL>(
             agent,
-            instant.into_value().unbind(),
+            instant.unbind(),
             other.unbind(),
             options.unbind(),
             gc,
@@ -254,7 +254,7 @@ impl TemporalInstantPrototype {
         const SINCE: bool = false;
         let result = difference_temporal_instant::<SINCE>(
             agent,
-            instant.into_value().unbind(),
+            instant.unbind(),
             other.unbind(),
             options.unbind(),
             gc,
