@@ -7,6 +7,7 @@ pub mod error;
 pub mod instant;
 pub mod options;
 pub mod plain_time;
+pub mod zoned_date_time;
 
 use temporal_rs::{
     options::{DifferenceSettings, RoundingIncrement, RoundingMode, Unit, UnitGroup},

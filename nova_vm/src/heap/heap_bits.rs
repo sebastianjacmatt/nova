@@ -27,7 +27,7 @@ use super::{
 use crate::ecmascript::builtins::date::Date;
 #[cfg(feature = "temporal")]
 use crate::ecmascript::builtins::temporal::{
-    duration::TemporalDuration, instant::TemporalInstant, plain_time::TemporalPlainTime,
+    duration::TemporalDuration, instant::TemporalInstant, plain_time::TemporalPlainTime, zoned_date_time::{self, TemporalZonedDateTime},
 };
 #[cfg(feature = "array-buffer")]
 use crate::ecmascript::builtins::{ArrayBuffer, data_view::DataView, typed_array::VoidArray};
@@ -463,6 +463,8 @@ pub(crate) struct HeapBits {
     pub(super) plain_times: BitRange,
     #[cfg(feature = "temporal")]
     pub(super) durations: BitRange,
+    #[cfg(feature = "temporal")]
+    pub(super) zoned_date_times: BitRange,
     pub(super) declarative_environments: BitRange,
     pub(super) ecmascript_functions: BitRange,
     pub(super) embedder_objects: BitRange,
@@ -545,6 +547,8 @@ pub(crate) struct WorkQueues<'a> {
     pub(crate) plain_times: Vec<TemporalPlainTime<'static>>,
     #[cfg(feature = "temporal")]
     pub(crate) durations: Vec<TemporalDuration<'static>>,
+    #[cfg(feature = "temporal")]
+    pub(crate) zoned_date_times: Vec<TemporalZonedDateTime<'static>>,
     pub(crate) declarative_environments: Vec<DeclarativeEnvironment<'static>>,
     pub(crate) e_2_1: Vec<ElementIndex<'static>>,
     pub(crate) e_2_2: Vec<ElementIndex<'static>>,
@@ -694,11 +698,14 @@ impl HeapBits {
         let data_views = BitRange::from_bit_count_and_len(&mut bit_count, heap.data_views.len());
         #[cfg(feature = "date")]
         let dates = BitRange::from_bit_count_and_len(&mut bit_count, heap.dates.len());
-        #[cfg(feature = "date")]
+        #[cfg(feature = "temporal")]
         let instants = BitRange::from_bit_count_and_len(&mut bit_count, heap.instants.len());
-        #[cfg(feature = "date")]
-        let plain_times = BitRange::from_bit_count_and_len(&mut bit_count, heap.plain_times.len());
+        #[cfg(feature = "temporal")]
         let durations = BitRange::from_bit_count_and_len(&mut bit_count, heap.durations.len());
+        #[cfg(feature = "temporal")]
+        let plain_times = BitRange::from_bit_count_and_len(&mut bit_count, heap.plain_times.len());
+        #[cfg(feature = "temporal")]
+        let zoned_date_times = BitRange::from_bit_count_and_len(&mut bit_count, heap.zoned_date_times.len());
         let declarative_environments =
             BitRange::from_bit_count_and_len(&mut bit_count, heap.environments.declarative.len());
         let ecmascript_functions =
@@ -812,6 +819,8 @@ impl HeapBits {
             plain_times,
             #[cfg(feature = "temporal")]
             durations,
+            #[cfg(feature = "temporal")]
+            zoned_date_times,
             declarative_environments,
             e_2_1,
             e_2_2,
@@ -928,6 +937,8 @@ impl HeapBits {
             WeakKey::PlainTime(d) => self.plain_times.get_bit(d.get_index(), &self.bits),
             #[cfg(feature = "temporal")]
             WeakKey::Duration(d) => self.durations.get_bit(d.get_index(), &self.bits),
+            #[cfg(feature = "temporal")]
+            WeakKey::ZonedDateTime(d) => self.zoned_date_times.get_bit(d.get_index(), &self.bits),
             WeakKey::Error(d) => self.errors.get_bit(d.get_index(), &self.bits),
             WeakKey::FinalizationRegistry(d) => self
                 .finalization_registrys
@@ -1071,6 +1082,8 @@ impl<'a> WorkQueues<'a> {
             durations: Vec::with_capacity(heap.durations.len() / 4),
             #[cfg(feature = "temporal")]
             plain_times: Vec::with_capacity(heap.plain_times.len() / 4),
+            #[cfg(feature = "temporal")]
+            zoned_date_times: Vec::with_capacity(heap.zoned_date_times.len() / 4),
             declarative_environments: Vec::with_capacity(heap.environments.declarative.len() / 4),
             e_2_1: Vec::with_capacity(heap.elements.e2pow1.values.len() / 4),
             e_2_2: Vec::with_capacity(heap.elements.e2pow2.values.len() / 4),
@@ -1183,6 +1196,8 @@ impl<'a> WorkQueues<'a> {
             durations,
             #[cfg(feature = "temporal")]
             plain_times,
+            #[cfg(feature = "temporal")]
+            zoned_date_times,
             declarative_environments,
             e_2_1,
             e_2_2,
@@ -1306,6 +1321,7 @@ impl<'a> WorkQueues<'a> {
             && instants.is_empty()
             && durations.is_empty()
             && plain_times.is_empty()
+            && zoned_date_times.is_empty()
             && declarative_environments.is_empty()
             && e_2_1.is_empty()
             && e_2_2.is_empty()
@@ -1671,6 +1687,8 @@ pub(crate) struct CompactionLists {
     pub(crate) plain_times: CompactionList,
     #[cfg(feature = "temporal")]
     pub(crate) durations: CompactionList,
+    #[cfg(feature = "temporal")]
+    pub(crate) zoned_date_times: CompactionList,
     pub(crate) declarative_environments: CompactionList,
     pub(crate) e_2_1: CompactionList,
     pub(crate) e_2_2: CompactionList,
@@ -1832,6 +1850,8 @@ impl CompactionLists {
             plain_times: CompactionList::from_mark_bits(&bits.plain_times, &bits.bits),
             #[cfg(feature = "temporal")]
             durations: CompactionList::from_mark_bits(&bits.durations, &bits.bits),
+            #[cfg(feature = "temporal")]
+            zoned_date_times: CompactionList::from_mark_bits(&bits.zoned_date_times, &bits.bits),
             errors: CompactionList::from_mark_bits(&bits.errors, &bits.bits),
             executables: CompactionList::from_mark_bits(&bits.executables, &bits.bits),
             maps: CompactionList::from_mark_bits(&bits.maps, &bits.bits),

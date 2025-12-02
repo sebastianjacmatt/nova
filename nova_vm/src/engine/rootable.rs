@@ -20,9 +20,9 @@ use crate::ecmascript::types::{
 #[cfg(feature = "temporal")]
 use crate::ecmascript::{
     builtins::temporal::{
-        duration::TemporalDuration, instant::TemporalInstant, plain_time::TemporalPlainTime,
+        duration::TemporalDuration, instant::TemporalInstant, plain_time::TemporalPlainTime, zoned_date_time::TemporalZonedDateTime,
     },
-    types::{DURATION_DISCRIMINANT, INSTANT_DISCRIMINANT, PLAIN_TIME_DISCRIMINANT},
+    types::{DURATION_DISCRIMINANT, INSTANT_DISCRIMINANT, PLAIN_TIME_DISCRIMINANT, ZONED_DATE_TIME_DISCRIMINANT},
 };
 #[cfg(feature = "proposal-float16array")]
 use crate::ecmascript::{builtins::typed_array::Float16Array, types::FLOAT_16_ARRAY_DISCRIMINANT};
@@ -144,7 +144,7 @@ pub mod private {
     use crate::ecmascript::builtins::date::Date;
     #[cfg(feature = "temporal")]
     use crate::ecmascript::builtins::temporal::{
-        duration::TemporalDuration, instant::TemporalInstant, plain_time::TemporalPlainTime,
+        duration::TemporalDuration, instant::TemporalInstant, plain_time::TemporalPlainTime, zoned_date_time::TemporalZonedDateTime,
     };
     #[cfg(feature = "shared-array-buffer")]
     use crate::ecmascript::builtins::{
@@ -247,6 +247,8 @@ pub mod private {
     impl RootableSealed for TemporalDuration<'_> {}
     #[cfg(feature = "temporal")]
     impl RootableSealed for TemporalPlainTime<'_> {}
+    #[cfg(feature = "temporal")]
+    impl RootableSealed for TemporalZonedDateTime<'_> {}
     impl RootableSealed for ECMAScriptFunction<'_> {}
     impl RootableSealed for EmbedderObject<'_> {}
     impl RootableSealed for Error<'_> {}
@@ -567,6 +569,8 @@ pub enum HeapRootData {
     Duration(TemporalDuration<'static>) = DURATION_DISCRIMINANT,
     #[cfg(feature = "temporal")]
     PlainTime(TemporalPlainTime<'static>) = PLAIN_TIME_DISCRIMINANT,
+    #[cfg(feature = "temporal")]
+    ZonedDateTime(TemporalZonedDateTime<'static>) = ZONED_DATE_TIME_DISCRIMINANT,
     Error(Error<'static>) = ERROR_DISCRIMINANT,
     FinalizationRegistry(FinalizationRegistry<'static>) = FINALIZATION_REGISTRY_DISCRIMINANT,
     Map(Map<'static>) = MAP_DISCRIMINANT,
@@ -707,6 +711,8 @@ impl From<Object<'static>> for HeapRootData {
             Object::Duration(duration) => Self::Duration(duration),
             #[cfg(feature = "temporal")]
             Object::PlainTime(plain_time) => Self::PlainTime(plain_time),
+            #[cfg(feature = "temporal")]
+            Object::ZonedDateTime(zoned_date_time) => Self::ZonedDateTime(zoned_date_time),
             Object::Error(error) => Self::Error(error),
             Object::FinalizationRegistry(finalization_registry) => {
                 Self::FinalizationRegistry(finalization_registry)
@@ -872,6 +878,8 @@ impl HeapMarkAndSweep for HeapRootData {
             Self::Duration(duration) => duration.mark_values(queues),
             #[cfg(feature = "temporal")]
             Self::PlainTime(plain_time) => plain_time.mark_values(queues),
+            #[cfg(feature = "temporal")]
+            Self::ZonedDateTime(zoned_date_time) => zoned_date_time.mark_values(queues),
             Self::Error(error) => error.mark_values(queues),
             Self::FinalizationRegistry(finalization_registry) => {
                 finalization_registry.mark_values(queues)
@@ -1027,6 +1035,8 @@ impl HeapMarkAndSweep for HeapRootData {
             Self::Duration(duration) => duration.sweep_values(compactions),
             #[cfg(feature = "temporal")]
             Self::PlainTime(plain_time) => plain_time.sweep_values(compactions),
+            #[cfg(feature = "temporal")]
+            Self::ZonedDateTime(zoned_date_time) => zoned_date_time.sweep_values(compactions),
             Self::Error(error) => error.sweep_values(compactions),
             Self::FinalizationRegistry(finalization_registry) => {
                 finalization_registry.sweep_values(compactions)

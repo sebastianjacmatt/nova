@@ -17,9 +17,9 @@ use crate::ecmascript::types::{
 #[cfg(feature = "temporal")]
 use crate::ecmascript::{
     builtins::temporal::{
-        duration::TemporalDuration, instant::TemporalInstant, plain_time::TemporalPlainTime,
+        duration::TemporalDuration, instant::TemporalInstant, plain_time::TemporalPlainTime, zoned_date_time::TemporalZonedDateTime,
     },
-    types::{DURATION_DISCRIMINANT, INSTANT_DISCRIMINANT, PLAIN_TIME_DISCRIMINANT},
+    types::{DURATION_DISCRIMINANT, INSTANT_DISCRIMINANT, PLAIN_TIME_DISCRIMINANT, ZONED_DATE_TIME_DISCRIMINANT},
 };
 #[cfg(feature = "proposal-float16array")]
 use crate::ecmascript::{builtins::typed_array::Float16Array, types::FLOAT_16_ARRAY_DISCRIMINANT};
@@ -154,6 +154,8 @@ pub(crate) enum WeakKey<'a> {
     Duration(TemporalDuration<'a>) = DURATION_DISCRIMINANT,
     #[cfg(feature = "temporal")]
     PlainTime(TemporalPlainTime<'a>) = PLAIN_TIME_DISCRIMINANT,
+    #[cfg(feature = "temporal")]
+    ZonedDateTime(TemporalZonedDateTime<'a>) = ZONED_DATE_TIME_DISCRIMINANT,
     Error(Error<'a>) = ERROR_DISCRIMINANT,
     FinalizationRegistry(FinalizationRegistry<'a>) = FINALIZATION_REGISTRY_DISCRIMINANT,
     Map(Map<'a>) = MAP_DISCRIMINANT,
@@ -273,6 +275,8 @@ impl<'a> From<WeakKey<'a>> for Value<'a> {
             WeakKey::Duration(d) => Self::Duration(d),
             #[cfg(feature = "temporal")]
             WeakKey::PlainTime(d) => Self::PlainTime(d),
+            #[cfg(feature = "temporal")]
+            WeakKey::ZonedDateTime(d) => Self::ZonedDateTime(d),
             WeakKey::Error(d) => Self::Error(d),
             WeakKey::FinalizationRegistry(d) => Self::FinalizationRegistry(d),
             WeakKey::Map(d) => Self::Map(d),
@@ -386,6 +390,8 @@ impl<'a> From<Object<'a>> for WeakKey<'a> {
             Object::Duration(d) => Self::Duration(d),
             #[cfg(feature = "temporal")]
             Object::PlainTime(d) => Self::PlainTime(d),
+            #[cfg(feature = "temporal")]
+            Object::ZonedDateTime(d) => Self::ZonedDateTime(d),
             Object::Error(d) => Self::Error(d),
             Object::FinalizationRegistry(d) => Self::FinalizationRegistry(d),
             Object::Map(d) => Self::Map(d),
@@ -503,6 +509,8 @@ impl<'a> TryFrom<WeakKey<'a>> for Object<'a> {
             WeakKey::Duration(d) => Ok(Self::Duration(d)),
             #[cfg(feature = "temporal")]
             WeakKey::PlainTime(d) => Ok(Self::PlainTime(d)),
+            #[cfg(feature = "temporal")]
+            WeakKey::ZonedDateTime(d) => Ok(Self::ZonedDateTime(d)),
             WeakKey::Error(d) => Ok(Self::Error(d)),
             WeakKey::FinalizationRegistry(d) => Ok(Self::FinalizationRegistry(d)),
             WeakKey::Map(d) => Ok(Self::Map(d)),
@@ -651,6 +659,8 @@ impl HeapMarkAndSweep for WeakKey<'static> {
             Self::Duration(d) => d.mark_values(queues),
             #[cfg(feature = "temporal")]
             Self::PlainTime(d) => d.mark_values(queues),
+            #[cfg(feature = "temporal")]
+            Self::ZonedDateTime(d) => d.mark_values(queues),
             Self::Error(d) => d.mark_values(queues),
             Self::FinalizationRegistry(d) => d.mark_values(queues),
             Self::Map(d) => d.mark_values(queues),
@@ -762,6 +772,8 @@ impl HeapMarkAndSweep for WeakKey<'static> {
             Self::Duration(d) => d.sweep_values(compactions),
             #[cfg(feature = "temporal")]
             Self::PlainTime(d) => d.sweep_values(compactions),
+            #[cfg(feature = "temporal")]
+            Self::ZonedDateTime(d) => d.sweep_values(compactions),
             Self::Error(d) => d.sweep_values(compactions),
             Self::FinalizationRegistry(d) => d.sweep_values(compactions),
             Self::Map(d) => d.sweep_values(compactions),
@@ -889,6 +901,8 @@ impl HeapSweepWeakReference for WeakKey<'static> {
             Self::Duration(data) => data.sweep_weak_reference(compactions).map(Self::Duration),
             #[cfg(feature = "temporal")]
             Self::PlainTime(data) => data.sweep_weak_reference(compactions).map(Self::PlainTime),
+            #[cfg(feature = "temporal")]
+            Self::ZonedDateTime(data) => data.sweep_weak_reference(compactions).map(Self::ZonedDateTime),
             Self::Error(data) => data.sweep_weak_reference(compactions).map(Self::Error),
             Self::FinalizationRegistry(data) => data
                 .sweep_weak_reference(compactions)

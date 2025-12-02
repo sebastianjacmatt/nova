@@ -456,6 +456,7 @@ SyntaxError
 #[cfg(feature = "temporal")]Temporal.Duration
 #[cfg(feature = "temporal")]Temporal.Instant
 #[cfg(feature = "temporal")]Temporal.PlainTime
+#[cfg(feature = "temporal")]Temporal.ZonedDateTime
 #[cfg(feature = "math")]tan
 #[cfg(feature = "math")]tanh
 #[cfg(feature = "regexp")]test
@@ -526,4 +527,5 @@ with
 withResolvers
 writable
 #[cfg(feature = "atomics")]xor
+#[cfg(feature = "temporal")]ZonedDateTime
 #[cfg(feature = "temporal")]years
