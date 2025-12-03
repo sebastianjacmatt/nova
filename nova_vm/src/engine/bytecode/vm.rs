@@ -1332,6 +1332,8 @@ fn typeof_operator(agent: &Agent, val: Value, gc: NoGcScope) -> String<'static> 
         Value::Duration(_)  => BUILTIN_STRING_MEMORY.object,
         #[cfg(feature = "temporal")]
         Value::PlainTime(_) => BUILTIN_STRING_MEMORY.object,
+        #[cfg(feature = "temporal")]
+        Value::ZonedDateTime(_) => BUILTIN_STRING_MEMORY.object,
         // 13. If val has a [[Call]] internal slot, return "function".
         Value::BoundFunction(_) | Value::BuiltinFunction(_) | Value::ECMAScriptFunction(_) |
         Value::BuiltinConstructorFunction(_) |

@@ -19,6 +19,7 @@ use crate::ecmascript::builtins::data_view::data::SharedDataViewRecord;
 use crate::ecmascript::builtins::temporal::{
     duration::data::DurationHeapData, instant::data::InstantRecord,
     plain_time::data::PlainTimeHeapData,
+    zoned_date_time::data::ZonedDateTimeHeapData,
 };
 #[cfg(feature = "array-buffer")]
 use crate::ecmascript::types::try_get_result_into_value;
@@ -1703,6 +1704,11 @@ pub(crate) fn ordinary_object_create_with_intrinsics<'a>(
             .heap
             .create(PlainTimeHeapData::default())
             .into_object(),
+        #[cfg(feature = "temporal")]
+        ProtoIntrinsics::TemporalZonedDateTime => agent
+            .heap
+            .create(ZonedDateTimeHeapData::default())
+            .into_object(),
         ProtoIntrinsics::TypeError => agent
             .heap
             .create(ErrorHeapData::new(ExceptionType::TypeError, None, None))
@@ -2098,6 +2104,9 @@ fn get_intrinsic_constructor<'a>(
         #[cfg(feature = "temporal")]
         ProtoIntrinsics::TemporalPlainTime => {
             Some(intrinsics.temporal_plain_time().into_function())
+        }
+        ProtoIntrinsics::TemporalZonedDateTime => {
+            Some(intrinsics.temporal_zoned_date_time().into_function())
         }
     }
 }

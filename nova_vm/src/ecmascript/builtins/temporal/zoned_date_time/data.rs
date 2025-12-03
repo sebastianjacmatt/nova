@@ -4,31 +4,29 @@
 
 use crate::engine::context::NoGcScope;
 use crate::{
-    ecmascript::types::OrdinaryObject,
-    engine::context::{bindable_handle, trivially_bindable},
-    heap::{CompactionLists, HeapMarkAndSweep, WorkQueues},
+    ecmascript::types::OrdinaryObject, engine::context::{bindable_handle, trivially_bindable}, heap::{CompactionLists, HeapMarkAndSweep, WorkQueues}
 };
 
-#[derive(Debug, Clone)]
-pub struct DurationHeapData<'a> {
+#[derive(Debug, Clone)] // cannot derive copy because of temporal_rs::ZonedDateTime not deriving it 
+pub struct ZonedDateTimeHeapData<'a> {
     pub(crate) object_index: Option<OrdinaryObject<'a>>,
-    pub(crate) duration: temporal_rs::Duration,
+    pub(crate) zoned_date_time: temporal_rs::ZonedDateTime,
 }
 
-impl DurationHeapData<'_> {
+impl ZonedDateTimeHeapData<'_> {
     pub fn default() -> Self {
         todo!()
     }
 }
 
-trivially_bindable!(temporal_rs::Duration);
-bindable_handle!(DurationHeapData);
+trivially_bindable!(temporal_rs::ZonedDateTime);
+bindable_handle!(ZonedDateTimeHeapData);
 
-impl HeapMarkAndSweep for DurationHeapData<'static> {
+impl HeapMarkAndSweep for ZonedDateTimeHeapData<'static> {
     fn mark_values(&self, queues: &mut WorkQueues) {
         let Self {
             object_index,
-            duration: _,
+            zoned_date_time: _,
         } = self;
 
         object_index.mark_values(queues);
@@ -36,7 +34,7 @@ impl HeapMarkAndSweep for DurationHeapData<'static> {
     fn sweep_values(&mut self, compactions: &CompactionLists) {
         let Self {
             object_index,
-            duration: _,
+            zoned_date_time: _,
         } = self;
 
         object_index.sweep_values(compactions);

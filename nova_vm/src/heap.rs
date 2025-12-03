@@ -33,6 +33,7 @@ use crate::ecmascript::builtins::date::data::DateHeapData;
 use crate::ecmascript::builtins::temporal::{
     duration::data::DurationHeapData, instant::data::InstantRecord,
     plain_time::data::PlainTimeHeapData,
+    zoned_date_time::data::ZonedDateTimeHeapData,
 };
 #[cfg(feature = "array-buffer")]
 use crate::ecmascript::builtins::{
@@ -156,6 +157,8 @@ pub(crate) struct Heap {
     pub(crate) durations: Vec<DurationHeapData<'static>>,
     #[cfg(feature = "temporal")]
     pub(crate) plain_times: Vec<PlainTimeHeapData<'static>>,
+    #[cfg(feature = "temporal")]
+    pub(crate) zoned_date_times: Vec<ZonedDateTimeHeapData<'static>>,
     pub(crate) ecmascript_functions: Vec<ECMAScriptFunctionHeapData<'static>>,
     /// ElementsArrays is where all keys and values arrays live;
     /// Element arrays are static arrays of Values plus
@@ -310,6 +313,8 @@ impl Heap {
             durations: Vec::with_capacity(1024),
             #[cfg(feature = "temporal")]
             plain_times: Vec::with_capacity(1024),
+            #[cfg(feature = "temporal")]
+            zoned_date_times: Vec::with_capacity(1024),
             ecmascript_functions: Vec::with_capacity(1024),
             elements: ElementArrays {
                 e2pow1: ElementArray2Pow1::with_capacity(1024),

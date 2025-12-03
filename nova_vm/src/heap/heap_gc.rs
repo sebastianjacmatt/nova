@@ -24,6 +24,8 @@ use crate::ecmascript::builtins::temporal::duration::TemporalDuration;
 use crate::ecmascript::builtins::temporal::instant::TemporalInstant;
 #[cfg(feature = "temporal")]
 use crate::ecmascript::builtins::temporal::plain_time::TemporalPlainTime;
+#[cfg(feature = "temporal")]
+use crate::ecmascript::builtins::temporal::zoned_date_time::TemporalZonedDateTime;
 #[cfg(feature = "array-buffer")]
 use crate::ecmascript::builtins::{ArrayBuffer, data_view::DataView, typed_array::VoidArray};
 #[cfg(feature = "shared-array-buffer")]
@@ -140,6 +142,8 @@ pub fn heap_gc(agent: &mut Agent, root_realms: &mut [Option<Realm<'static>>], gc
             durations,
             #[cfg(feature = "temporal")]
             plain_times,
+            #[cfg(feature = "temporal")]
+            zoned_date_times,
             ecmascript_functions,
             elements,
             embedder_objects,
@@ -588,6 +592,16 @@ pub fn heap_gc(agent: &mut Agent, root_realms: &mut [Option<Realm<'static>>], gc
                 if bits.plain_times.set_bit(index, &bits.bits) {
                     // Did mark.
                     plain_times.get(index).mark_values(&mut queues);
+                }
+            });
+            let mut zoned_date_time_marks: Box<[TemporalZonedDateTime]> =
+                queues.zoned_date_times.drain(..).collect();
+            zoned_date_time_marks.sort();
+            zoned_date_time_marks.iter().for_each(|&idx| {
+                let index = idx.get_index();
+                if bits.zoned_date_times.set_bit(index, &bits.bits) {
+                    // Did mark.
+                    zoned_date_times.get(index).mark_values(&mut queues);
                 }
             });
         }
@@ -1300,6 +1314,8 @@ fn sweep(
         durations,
         #[cfg(feature = "temporal")]
         plain_times,
+        #[cfg(feature = "temporal")]
+        zoned_date_times,
         ecmascript_functions,
         elements,
         embedder_objects,
@@ -1769,6 +1785,12 @@ fn sweep(
         if !plain_times.is_empty() {
             s.spawn(|| {
                 sweep_heap_vector_values(plain_times, &compactions, &bits.plain_times, &bits.bits);
+            });
+        }
+        #[cfg(feature = "temporal")]
+        if !zoned_date_times.is_empty() {
+            s.spawn(|| { // cannot be threaded because ZonedDateTime cannot be threaded?
+                sweep_heap_vector_values(zoned_date_times, &compactions, &bits.zoned_date_times, &bits.bits);
             });
         }
         if !declarative.is_empty() {

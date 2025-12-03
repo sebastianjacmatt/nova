@@ -41,9 +41,9 @@ use crate::ecmascript::builtins::{weak_map::WeakMap, weak_ref::WeakRef, weak_set
 #[cfg(feature = "temporal")]
 use crate::ecmascript::{
     builtins::temporal::{
-        duration::TemporalDuration, instant::TemporalInstant, plain_time::TemporalPlainTime,
+        duration::TemporalDuration, instant::TemporalInstant, plain_time::TemporalPlainTime, zoned_date_time::TemporalZonedDateTime,
     },
-    types::{DURATION_DISCRIMINANT, INSTANT_DISCRIMINANT, PLAIN_TIME_DISCRIMINANT},
+    types::{DURATION_DISCRIMINANT, INSTANT_DISCRIMINANT, PLAIN_TIME_DISCRIMINANT, ZONED_DATE_TIME_DISCRIMINANT},
 };
 #[cfg(feature = "proposal-float16array")]
 use crate::ecmascript::{builtins::typed_array::Float16Array, types::FLOAT_16_ARRAY_DISCRIMINANT};
@@ -192,6 +192,8 @@ pub enum Object<'a> {
     Duration(TemporalDuration<'a>) = DURATION_DISCRIMINANT,
     #[cfg(feature = "temporal")]
     PlainTime(TemporalPlainTime<'a>) = PLAIN_TIME_DISCRIMINANT,
+    #[cfg(feature = "temporal")]
+    ZonedDateTime(TemporalZonedDateTime<'a>) = ZONED_DATE_TIME_DISCRIMINANT,
     Error(Error<'a>) = ERROR_DISCRIMINANT,
     FinalizationRegistry(FinalizationRegistry<'a>) = FINALIZATION_REGISTRY_DISCRIMINANT,
     Map(Map<'a>) = MAP_DISCRIMINANT,
@@ -796,6 +798,8 @@ impl<'a> From<Object<'a>> for Value<'a> {
             Object::Duration(data) => Value::Duration(data),
             #[cfg(feature = "temporal")]
             Object::PlainTime(data) => Value::PlainTime(data),
+            #[cfg(feature = "temporal")]
+            Object::ZonedDateTime(data) => Value::ZonedDateTime(data),
             Object::Error(data) => Self::Error(data),
             Object::FinalizationRegistry(data) => Self::FinalizationRegistry(data),
             Object::Map(data) => Self::Map(data),
@@ -910,6 +914,8 @@ impl<'a> TryFrom<Value<'a>> for Object<'a> {
             Value::Duration(x) => Ok(Self::Duration(x)),
             #[cfg(feature = "temporal")]
             Value::PlainTime(x) => Ok(Self::PlainTime(x)),
+            #[cfg(feature = "temporal")]
+            Value::ZonedDateTime(x) => Ok(Self::ZonedDateTime(x)),
             Value::Error(x) => Ok(Self::from(x)),
             Value::BoundFunction(x) => Ok(Self::from(x)),
             Value::BuiltinFunction(x) => Ok(Self::from(x)),
@@ -1032,6 +1038,8 @@ macro_rules! object_delegate {
             Object::Duration(data) => data.$method($($arg),+),
             #[cfg(feature = "temporal")]
             Object::PlainTime(data) => data.$method($($arg),+),
+            #[cfg(feature = "temporal")]
+            Object::ZonedDateTime(data) => data.$method($($arg),+),
             Self::Error(data) => data.$method($($arg),+),
             Self::BoundFunction(data) => data.$method($($arg),+),
             Self::BuiltinFunction(data) => data.$method($($arg),+),
@@ -1468,6 +1476,8 @@ impl HeapSweepWeakReference for Object<'static> {
             Self::Duration(data) => data.sweep_weak_reference(compactions).map(Self::Duration),
             #[cfg(feature = "temporal")]
             Self::PlainTime(data) => data.sweep_weak_reference(compactions).map(Self::PlainTime),
+            #[cfg(feature = "temporal")]
+            Self::ZonedDateTime(data) => data.sweep_weak_reference(compactions).map(Self::ZonedDateTime),
             Self::Error(data) => data.sweep_weak_reference(compactions).map(Self::Error),
             Self::BoundFunction(data) => data
                 .sweep_weak_reference(compactions)
@@ -1710,6 +1720,8 @@ impl TryFrom<HeapRootData> for Object<'_> {
             HeapRootData::Duration(duration) => Ok(Self::Duration(duration)),
             #[cfg(feature = "temporal")]
             HeapRootData::PlainTime(plain_time) => Ok(Self::PlainTime(plain_time)),
+            #[cfg(feature = "temporal")]
+            HeapRootData::ZonedDateTime(zoned_date_time) => Ok(Self::ZonedDateTime(zoned_date_time)),
             HeapRootData::Error(error) => Ok(Self::Error(error)),
             HeapRootData::FinalizationRegistry(finalization_registry) => {
                 Ok(Self::FinalizationRegistry(finalization_registry))

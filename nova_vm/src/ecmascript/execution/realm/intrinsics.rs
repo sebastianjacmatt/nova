@@ -54,6 +54,10 @@ use crate::ecmascript::builtins::temporal::{
         plain_time_constructor::TemporalPlainTimeConstructor,
         plain_time_prototype::TemporalPlainTimePrototype,
     },
+    zoned_date_time::{
+        zoned_date_time_constructor::TemporalZonedDateTimeConstructor,
+        zoned_date_time_prototype::TemporalZonedDateTimePrototype,
+    }
 };
 
 #[cfg(feature = "regexp")]
@@ -250,6 +254,8 @@ pub enum ProtoIntrinsics {
     TemporalDuration,
     #[cfg(feature = "temporal")]
     TemporalPlainTime,
+    #[cfg(feature = "temporal")]
+    TemporalZonedDateTime,
     TypeError,
     #[cfg(feature = "array-buffer")]
     Uint16Array,
@@ -345,6 +351,10 @@ impl Intrinsics {
         TemporalPlainTimePrototype::create_intrinsic(agent, realm, gc);
         #[cfg(feature = "temporal")]
         TemporalPlainTimeConstructor::create_intrinsic(agent, realm, gc);
+        #[cfg(feature = "temporal")]
+        TemporalZonedDateTimePrototype::create_intrinsic(agent, realm, gc);
+        #[cfg(feature = "temporal")]
+        TemporalZonedDateTimeConstructor::create_intrinsic(agent, realm, gc);
         #[cfg(feature = "date")]
         DatePrototype::create_intrinsic(agent, realm);
         #[cfg(feature = "date")]
@@ -460,6 +470,8 @@ impl Intrinsics {
             ProtoIntrinsics::TemporalDuration => self.temporal_duration().into(),
             #[cfg(feature = "temporal")]
             ProtoIntrinsics::TemporalPlainTime => self.temporal_plain_time().into(),
+            #[cfg(feature = "temporal")]
+            ProtoIntrinsics::TemporalZonedDateTime => self.temporal_zoned_date_time().into(),
             ProtoIntrinsics::TypeError => self.type_error().into(),
             ProtoIntrinsics::URIError => self.uri_error().into(),
             ProtoIntrinsics::AggregateError => self.aggregate_error().into(),
@@ -555,6 +567,8 @@ impl Intrinsics {
             ProtoIntrinsics::TemporalDuration => self.temporal_duration_prototype().into(),
             #[cfg(feature = "temporal")]
             ProtoIntrinsics::TemporalPlainTime => self.temporal_plain_time_prototype().into(),
+            #[cfg(feature = "temporal")]
+            ProtoIntrinsics::TemporalZonedDateTime => self.temporal_zoned_date_time_prototype().into(),
             ProtoIntrinsics::TypeError => self.type_error_prototype().into(),
             ProtoIntrinsics::URIError => self.uri_error_prototype().into(),
             ProtoIntrinsics::AggregateError => self.aggregate_error_prototype().into(),
@@ -1060,43 +1074,64 @@ impl Intrinsics {
     pub(crate) const fn math(&self) -> OrdinaryObject<'static> {
         IntrinsicObjectIndexes::MathObject.get_backing_object(self.object_index_base)
     }
-
+    
+    #[cfg(feature="temporal")]
     /// %Temporal%
     pub(crate) const fn temporal(&self) -> OrdinaryObject<'static> {
         IntrinsicObjectIndexes::Temporal.get_backing_object(self.object_index_base)
     }
-
+    
+    #[cfg(feature="temporal")]
     /// %Temporal.Instant.Prototype%
     pub(crate) const fn temporal_duration_prototype(&self) -> OrdinaryObject<'static> {
         IntrinsicObjectIndexes::TemporalDurationPrototype.get_backing_object(self.object_index_base)
     }
 
+    #[cfg(feature="temporal")]
     /// %Temporal.Instant%
     pub(crate) const fn temporal_duration(&self) -> BuiltinFunction<'static> {
         IntrinsicConstructorIndexes::TemporalDuration
             .get_builtin_function(self.builtin_function_index_base)
     }
 
+    #[cfg(feature="temporal")]
     /// %Temporal.Instant.Prototype%
     pub(crate) const fn temporal_instant_prototype(&self) -> OrdinaryObject<'static> {
         IntrinsicObjectIndexes::TemporalInstantPrototype.get_backing_object(self.object_index_base)
     }
 
+    #[cfg(feature="temporal")]
     /// %Temporal.Instant%
     pub(crate) const fn temporal_instant(&self) -> BuiltinFunction<'static> {
         IntrinsicConstructorIndexes::TemporalInstant
             .get_builtin_function(self.builtin_function_index_base)
     }
 
+    #[cfg(feature="temporal")]
     /// %Temporal.PlainTime.prototype%
     pub(crate) const fn temporal_plain_time_prototype(&self) -> OrdinaryObject<'static> {
         IntrinsicObjectIndexes::TemporalPlainTimePrototype
             .get_backing_object(self.object_index_base)
     }
 
+    #[cfg(feature="temporal")]
     /// %Temporal.PlainTime%
     pub(crate) const fn temporal_plain_time(&self) -> BuiltinFunction<'static> {
         IntrinsicConstructorIndexes::TemporalPlainTime
+            .get_builtin_function(self.builtin_function_index_base)
+    }
+    
+    #[cfg(feature="temporal")]
+    /// %Temporal.PlainTime.prototype%
+    pub(crate) const fn temporal_zoned_date_time_prototype(&self) -> OrdinaryObject<'static> {
+        IntrinsicObjectIndexes::TemporalZonedDateTimePrototype
+            .get_backing_object(self.object_index_base)
+    }
+
+    #[cfg(feature="temporal")]
+    /// %Temporal.PlainTime%
+    pub(crate) const fn temporal_zoned_date_time(&self) -> BuiltinFunction<'static> {
+        IntrinsicConstructorIndexes::TemporalZonedDateTime
             .get_builtin_function(self.builtin_function_index_base)
     }
 
